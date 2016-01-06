@@ -13,3 +13,10 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+/bin/
+
+.cache-main
+.classpath
+.project
+.settings/
+
