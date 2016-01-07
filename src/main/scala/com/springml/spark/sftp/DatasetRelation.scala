@@ -10,6 +10,9 @@ import org.apache.spark.sql.types.StructType
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.SQLContext
+import org.apache.commons.io.FileUtils
+import java.io.File
+import org.apache.hadoop.util.ShutdownHookManager
 
 /**
  * Abstract relation class for reading data from file
@@ -18,6 +21,7 @@ case class DatasetRelation(
     fileLocation: String,
     fileType: String,
     inferSchema: String,
+    header: String,
     sqlContext: SQLContext) extends BaseRelation with TableScan {
 
     private val logger = Logger.getLogger(classOf[DatasetRelation])
@@ -34,7 +38,7 @@ case class DatasetRelation(
         df = sqlContext.
           read.
           format("com.databricks.spark.csv").
-          option("header", "true").
+          option("header", header).
           option("inferSchema", inferSchema).
           load(fileLocation)
       } else if (fileType.equals("avro")) {
@@ -51,4 +55,5 @@ case class DatasetRelation(
     override def buildScan(): RDD[Row] = {
       df.rdd
     }
+
 }

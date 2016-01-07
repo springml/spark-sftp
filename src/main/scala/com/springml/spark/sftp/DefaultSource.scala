@@ -61,6 +61,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val path = parameters.getOrElse("path", sys.error("'path' must be specified"))
     val fileType = parameters.getOrElse("fileType", sys.error("File type has to be provided using 'fileType' option"))
     val inferSchema = parameters.get("inferSchema")
+    val header = parameters.getOrElse("header", "true")
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -75,7 +76,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
     val fileLocation = copy(username, password, pemFileLocation, host, port, path)
 
-    DatasetRelation(fileLocation, fileType, inferSchemaFlag, sqlContext)
+    DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, sqlContext)
   }
 
   private def copy(username: Option[String], password: Option[String], pemFileLocation: Option[String],
