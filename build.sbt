@@ -22,6 +22,10 @@ resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages
 spDependencies += "databricks/spark-avro:2.0.1-s_2.10"
 spDependencies += "databricks/spark-csv:1.3.0-s_2.10"
 
+// Test dependencies
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+libraryDependencies += "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api")
+
 licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
