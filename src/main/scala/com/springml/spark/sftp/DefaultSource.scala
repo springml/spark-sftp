@@ -27,6 +27,7 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.sources.BaseRelation
 import java.io.File
+import org.apache.commons.io.FileUtils
 
 /**
  * Datasource to construct dataframe from a sftp url
@@ -81,19 +82,26 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
   private def copy(username: Option[String], password: Option[String], pemFileLocation: Option[String],
       host: String, port: Option[String], source: String): String = {
-    val sftpPort = if (port != null && port.isDefined) {
-      port.get.toInt
-    } else {
-      22
+    var target: String = null
+    try {
+      val sftpPort = if (port != null && port.isDefined) {
+        port.get.toInt
+      } else {
+        22
+      }
+
+      val sftpClient = new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
+      val tempDir = System.getProperty("java.io.tmpdir")
+      target = tempDir + File.separator + FilenameUtils.getName(source)
+      logger.info("Copying " + source + " to " + target)
+      sftpClient.copy(source, target)
+
+      target
+    } finally {
+      logger.debug("Adding hook for file " + target)
+      val hook = new DeleteTempFileShutdownHook(target)
+      Runtime.getRuntime.addShutdownHook(hook)
     }
-
-    val sftpClient = new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
-    val tempDir = System.getProperty("java.io.tmpdir")
-    val target = tempDir + File.separator + FilenameUtils.getName(source)
-    logger.info("Copying " + source + " to " + target)
-    sftpClient.copy(source, target)
-
-    target
   }
 
   private def getValue(param: Option[String]): String = {

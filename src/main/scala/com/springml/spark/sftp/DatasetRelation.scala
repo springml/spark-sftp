@@ -12,7 +12,6 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.SQLContext
 import org.apache.commons.io.FileUtils
 import java.io.File
-import org.apache.hadoop.util.ShutdownHookManager
 
 /**
  * Abstract relation class for reading data from file
