@@ -1,3 +1,7 @@
+name := "spark-sftp"
+
+organization := "com.springml"
+
 scalaVersion := "2.10.4"
 
 sparkVersion := "1.4.0"
@@ -26,7 +30,7 @@ spDependencies += "databricks/spark-csv:1.3.0-s_2.10"
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 libraryDependencies += "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api")
 
-licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
+// licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 

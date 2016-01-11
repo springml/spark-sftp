@@ -12,10 +12,16 @@ You can link against this library in your program at the following ways:
 ### Maven Dependency
 ```
 <dependency>
-    <groupId>com.springml</groupId>
-    <artifactId>spark-sftp_2.10</artifactId>
-    <version>1.0.0</version>
+	<groupId>com.springml</groupId>
+	<artifactId>spark-sftp_2.10</artifactId>
+	<version>1.0.0</version>
 </dependency>
+
+```
+
+### SBT Dependency
+```
+libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.0"
 ```
 
 
@@ -110,7 +116,7 @@ df <- read.df(sqlContext,
 ```
 
 ### Note
-1. SFTP file are fetched using [jsch](http://www.jcraft.com/jsch/). It is nt executed as spark job. It might fail in cluster
+1. SFTP file are fetched using [jsch](http://www.jcraft.com/jsch/). It is not executed as spark job. It might have issues in cluster
 2. Files from SFTP server will be downloaded to temp location and it will be deleted only during spark shutdown
 
 
