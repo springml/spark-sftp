@@ -26,6 +26,7 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.sources.BaseRelation
+import com.databricks.spark.avro._
 import java.io.File
 import org.apache.commons.io.FileUtils
 
@@ -34,14 +35,6 @@ import org.apache.commons.io.FileUtils
  */
 class DefaultSource extends RelationProvider with SchemaRelationProvider with CreatableRelationProvider  {
   @transient val logger = Logger.getLogger(classOf[DefaultSource])
-
-  def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
-    sys.error("Write not yet supported");
-    new BaseRelation {
-      override def sqlContext: SQLContext = data.sqlContext
-      override def schema: StructType = data.schema
-    }
-  }
 
   /**
    * Copy the file from SFTP to local location and then create dataframe using local file
@@ -63,6 +56,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val fileType = parameters.getOrElse("fileType", sys.error("File type has to be provided using 'fileType' option"))
     val inferSchema = parameters.get("inferSchema")
     val header = parameters.getOrElse("header", "true")
+    val copyLatest = parameters.getOrElse("copyLatest", "false")
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -75,32 +69,85 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       "false"
     }
 
-    val fileLocation = copy(username, password, pemFileLocation, host, port, path)
+    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
+    val fileLocation = copy(sftpClient, path, copyLatest.toBoolean)
 
     DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, sqlContext)
   }
 
-  private def copy(username: Option[String], password: Option[String], pemFileLocation: Option[String],
-      host: String, port: Option[String], source: String): String = {
-    var target: String = null
+  override def createRelation(
+      sqlContext: SQLContext,
+      mode: SaveMode,
+      parameters: Map[String, String],
+      data: DataFrame): BaseRelation = {
+
+    val username = parameters.get("username")
+    val password = parameters.get("password")
+    val pemFileLocation = parameters.get("pem")
+    val host = parameters.getOrElse("host", sys.error("SFTP Host has to be provided using 'host' option"))
+    val port = parameters.get("port")
+    val path = parameters.getOrElse("path", sys.error("'path' must be specified"))
+    val fileType = parameters.getOrElse("fileType", sys.error("File type has to be provided using 'fileType' option"))
+    val header = parameters.getOrElse("header", "true")
+    val copyLatest = parameters.getOrElse("copyLatest", "false")
+
+    val supportedFileTypes = List("csv", "json", "avro", "parquet")
+    if (!supportedFileTypes.contains(fileType)) {
+      sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
+    }
+
+    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
+    val tempFile = writeToTemp(sqlContext, data, fileType, header)
+    upload(tempFile, path, sftpClient)
+    return createReturnRelation(data)
+  }
+
+  private def upload(source: String, target: String, sftpClient: SFTPClient) {
+    logger.info("Copying " + source + " to " + target)
+    sftpClient.copyToFTP(source, target)
+  }
+
+  private def getSFTPClient(
+      username: Option[String],
+      password: Option[String],
+      pemFileLocation: Option[String],
+      host: String,
+      port: Option[String]) : SFTPClient = {
+
+    val sftpPort = if (port != null && port.isDefined) {
+      port.get.toInt
+    } else {
+      22
+    }
+
+    new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
+  }
+
+  private def createReturnRelation(data: DataFrame) = {
+
+    new BaseRelation {
+      override def sqlContext: SQLContext = data.sqlContext
+      override def schema: StructType = data.schema
+    }
+  }
+
+  private def copy(sftpClient: SFTPClient, source: String, latest: Boolean): String = {
+    var copiedFilePath: String = null
     try {
-      val sftpPort = if (port != null && port.isDefined) {
-        port.get.toInt
+      val tempDir = System.getProperty("java.io.tmpdir")
+      val target = tempDir + File.separator + FilenameUtils.getName(source)
+      copiedFilePath = target
+      if (latest) {
+        copiedFilePath = sftpClient.copyLatest(source, tempDir)
       } else {
-        22
+        logger.info("Copying " + source + " to " + target)
+        copiedFilePath = sftpClient.copy(source, target)
       }
 
-      val sftpClient = new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
-      val tempDir = System.getProperty("java.io.tmpdir")
-      target = tempDir + File.separator + FilenameUtils.getName(source)
-      logger.info("Copying " + source + " to " + target)
-      sftpClient.copy(source, target)
 
-      target
+      copiedFilePath
     } finally {
-      logger.debug("Adding hook for file " + target)
-      val hook = new DeleteTempFileShutdownHook(target)
-      Runtime.getRuntime.addShutdownHook(hook)
+      addShutdownHook(copiedFilePath);
     }
   }
 
@@ -112,4 +159,51 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
   }
 
+  private def writeToTemp(sqlContext: SQLContext, df: DataFrame, fileType: String, header: String) : String = {
+    val tempDir = System.getProperty("java.io.tmpdir")
+    val r = scala.util.Random
+    val tempLocation = tempDir + File.separator + "spark_sftp_connection_temp" + r.nextInt(1000)
+    addShutdownHook(tempLocation);
+
+    if (fileType.equals("json")) {
+      df.coalesce(1).write.json(tempLocation)
+    } else if (fileType.equals("parquet")) {
+      df.coalesce(1).write.parquet(tempLocation)
+      return copiedParquetFile(tempLocation)
+    } else if (fileType.equals("csv")) {
+      df.coalesce(1).
+          write.
+          format("com.databricks.spark.csv").
+          option("header", header).
+          save(tempLocation)
+    } else if (fileType.equals("avro")) {
+      df.coalesce(1).write.avro(tempLocation)
+    }
+
+    copiedFile(tempLocation)
+  }
+
+  private def addShutdownHook(tempLocation: String) {
+    logger.debug("Adding hook for file " + tempLocation)
+    val hook = new DeleteTempFileShutdownHook(tempLocation)
+    Runtime.getRuntime.addShutdownHook(hook)
+  }
+
+  private def copiedParquetFile(tempFileLocation: String) : String = {
+    val baseTemp = new File(tempFileLocation)
+    val files = baseTemp.listFiles().filter { x =>
+      (!x.isDirectory()
+          && x.getName.endsWith("parquet")
+          && !x.isHidden())}
+    files(0).getAbsolutePath
+  }
+
+  private def copiedFile(tempFileLocation: String) : String = {
+    val baseTemp = new File(tempFileLocation)
+    val files = baseTemp.listFiles().filter { x =>
+      (!x.isDirectory()
+        && !x.getName.contains("SUCCESS")
+        && !x.isHidden())}
+    files(0).getAbsolutePath
+  }
 }
