@@ -33,8 +33,9 @@ $ bin/spark-shell --packages com.springml:spark-sftp_2.10:1.0.1
 ```
 
 ## Features
-This package can be used to construct spark dataframe by downloading the files from SFTP server
-This package can be used to write spark dataframe as a csv|json|acro tp SFTP server
+This package can be used to construct spark dataframe by downloading the files from SFTP server.
+
+This package can also be used to write spark dataframe as a csv|json|acro tp SFTP server
 
 This library requires following options:
 * `path`: FTP URL of the file to be used for dataframe construction
