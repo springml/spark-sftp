@@ -1,6 +1,6 @@
 # Spark SFTP Connector Library
 
-A library for constructing dataframes by downloading files from SFTP.
+A library for constructing dataframes by downloading files from SFTP and writing dataframe to a SFTP server
 
 ## Requirements
 
@@ -14,14 +14,14 @@ You can link against this library in your program at the following ways:
 <dependency>
 	<groupId>com.springml</groupId>
 	<artifactId>spark-sftp_2.10</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 </dependency>
 
 ```
 
 ### SBT Dependency
 ```
-libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.0"
+libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.1"
 ```
 
 
@@ -29,12 +29,14 @@ libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.0"
 This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
 
 ```
-$ bin/spark-shell --packages com.springml:spark-sftp_2.10:1.0.0
+$ bin/spark-shell --packages com.springml:spark-sftp_2.10:1.0.1
 ```
 
 ## Features
-This package can be used to construct dataset by downloading the files from SFTP server
+1. This package can be used to construct spark dataframe by downloading the files from SFTP server
+2. This package can be used to write spark dataframe as a csv|json|acro tp SFTP server
 This library requires following options:
+* `path`: FTP URL of the file to be used for dataframe construction
 * `username`: SFTP Server Username. 
 * `password`: (Optional) SFTP Server Password. 
 * `pem`: (Optional) Location of PEM file. Either pem or password has to be specified
@@ -50,15 +52,25 @@ Spark 1.5+:
 ```scala
 import org.apache.spark.sql.SQLContext
 
+// Construct Spark dataframe using file in FTP server
 val sqlContext = new SQLContext(sc)
 val df = sqlContext.read.
 				    format("com.springml.spark.sftp").
-				    option("password", "****").
 				    option("host", "SFTP_HOST").
 				    option("username", "SFTP_USER").
+				    option("password", "****").
 				    option("fileType", "csv").
 				    option("inferSchema", "true").
-				    load("/home/user/files/sample.csv")
+				    load("/ftp/files/sample.csv")
+
+// Write dataframe as CSV file to FTP server
+df.write().
+      format("com.springml.spark.sftp").
+      option("host", "SFTP_HOST").
+      option("username", "SFTP_USER").
+      option("password", "****").
+      option("fileType", "csv").
+      save("/ftp/files/sample.csv");
 
 ```
 
@@ -69,16 +81,52 @@ Spark 1.5+:
 import org.apache.spark.sql.SQLContext
 
 SQLContext sqlContext = new SQLContext(sc);
+
+// Construct Spark dataframe using file in FTP server
 DataFrame df = sqlContext.read().
 					format("com.springml.spark.sftp").
-				    option("password", "****").
 				    option("host", "SFTP_HOST").
 				    option("username", "SFTP_USER").
+				    option("password", "****").
 				    option("fileType", "json").
-				    load("/home/user/files/sample.json")
+				    load("/ftp/files/sample.json")
 
+// Write dataframe as CSV file to FTP server
+df.write().
+      format("com.springml.spark.sftp").
+      option("host", "SFTP_HOST").
+      option("username", "SFTP_USER").
+      option("password", "****").
+      option("fileType", "json").
+      save("/ftp/files/sample.json");
 ```
 
+### R API
+Spark 1.5+:
+```r
+library(SparkR)
+
+Sys.setenv('SPARKR_SUBMIT_ARGS'='"--packages" "com.springml:spark-sftp_2.10:1.0.1" "sparkr-shell"')
+sqlContext <- sparkRSQL.init(sc)
+
+# Construct Spark dataframe using file in FTP server
+df <- read.df(sqlContext,
+		path="/ftp/files/sample.avro",
+		source="com.springml.spark.sftp",
+		host="SFTP_HOST",
+		username="SFTP_USER",
+		pem="/home/user/mypem.pem",
+		fileType="avro")
+
+# Write dataframe as CSV file to FTP server
+write.df(df,
+        path="/ftp/files/sample.avro",
+        source="com.springml.spark.sftp",
+        host="SFTP_HOST",
+        username="SFTP_USER",
+        pem="/home/user/mypem.pem",
+        fileType="avro")
+```
 
 ### Python API
 Spark 1.5+:
@@ -97,26 +145,8 @@ df = sqlContext.read.
 
 ```
 
-### R API
-Spark 1.5+:
-```r
-library(SparkR)
-
-Sys.setenv('SPARKR_SUBMIT_ARGS'='"--packages" "com.springml:spark-sftp_2.10:1.0.0" "sparkr-shell"')
-sqlContext <- sparkRSQL.init(sc)
-
-df <- read.df(sqlContext, 
-		path="/home/user/files/sample.avro", 
-		source="com.springml.spark.sftp",
-		username="SFTP_USER", 
-		pem="/home/user/mypem.pem", 
-		host="SFTP_HOST", 
-		fileType="avro")
-
-```
-
 ### Note
-1. SFTP file are fetched using [jsch](http://www.jcraft.com/jsch/). It is not executed as spark job. It might have issues in cluster
+1. SFTP files are fetched and written using [jsch](http://www.jcraft.com/jsch/). It is not executed as spark job. It might have issues in cluster
 2. Files from SFTP server will be downloaded to temp location and it will be deleted only during spark shutdown
 
 
