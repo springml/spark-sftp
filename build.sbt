@@ -12,7 +12,7 @@ version := "1.0.1"
 
 // Dependent libraries
 libraryDependencies ++= Seq(
-//  "com.springml" % "sftp.client" % "1.0.1",
+  "com.springml" % "sftp.client" % "1.0.1",
   "org.mockito" % "mockito-core" % "2.0.31-beta"
 )
 
