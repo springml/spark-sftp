@@ -13,7 +13,7 @@ class DeleteTempFileShutdownHook(
   private val logger = Logger.getLogger(classOf[DatasetRelation])
 
   override def run(): Unit = {
-    logger.info("Deleting " + fileLocation + " ...")
+    logger.info("Deleting " + fileLocation )
     FileUtils.deleteQuietly(new File(fileLocation))
   }
 }

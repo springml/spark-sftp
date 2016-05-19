@@ -25,7 +25,7 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
   test ("Read CSV") {
     val sqlContext = new SQLContext(sc)
     val fileLocation = getClass.getResource("/sample.csv").getPath
-    val dsr = DatasetRelation(fileLocation, "csv", "false", "true", sqlContext)
+    val dsr = DatasetRelation(fileLocation, "csv", "false", "true", ",", sqlContext)
     val rdd = dsr.buildScan()
     assert(3 == rdd.count())
   }
@@ -33,7 +33,7 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
   test ("Read JSON") {
     val sqlContext = new SQLContext(sc)
     val fileLocation = getClass.getResource("/people.json").getPath
-    val dsr = DatasetRelation(fileLocation, "json", "false", "true", sqlContext)
+    val dsr = DatasetRelation(fileLocation, "json", "false", "true", ",", sqlContext)
     val rdd = dsr.buildScan()
     assert(3 == rdd.count())
   }
@@ -41,7 +41,7 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
   test ("Read AVRO") {
     val sqlContext = new SQLContext(sc)
     val fileLocation = getClass.getResource("/users.avro").getPath
-    val dsr = DatasetRelation(fileLocation, "avro", "false", "true", sqlContext)
+    val dsr = DatasetRelation(fileLocation, "avro", "false", "true", ",", sqlContext)
     val rdd = dsr.buildScan()
     assert(2 == rdd.count())
   }
@@ -49,7 +49,7 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
   test ("Read parquet") {
     val sqlContext = new SQLContext(sc)
     val fileLocation = getClass.getResource("/users.parquet").getPath
-    val dsr = DatasetRelation(fileLocation, "parquet", "false", "true", sqlContext)
+    val dsr = DatasetRelation(fileLocation, "parquet", "false", "true", ",", sqlContext)
     val rdd = dsr.buildScan()
     assert(2 == rdd.count())
   }

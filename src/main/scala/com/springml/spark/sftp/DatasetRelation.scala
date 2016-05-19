@@ -21,6 +21,7 @@ case class DatasetRelation(
     fileType: String,
     inferSchema: String,
     header: String,
+    delimiter: String,
     sqlContext: SQLContext) extends BaseRelation with TableScan {
 
     private val logger = Logger.getLogger(classOf[DatasetRelation])
@@ -38,6 +39,7 @@ case class DatasetRelation(
           read.
           format("com.databricks.spark.csv").
           option("header", header).
+          option("delimiter", delimiter).
           option("inferSchema", inferSchema).
           load(fileLocation)
       } else if (fileType.equals("avro")) {

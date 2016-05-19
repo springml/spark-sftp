@@ -56,6 +56,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val fileType = parameters.getOrElse("fileType", sys.error("File type has to be provided using 'fileType' option"))
     val inferSchema = parameters.get("inferSchema")
     val header = parameters.getOrElse("header", "true")
+    val delimiter = parameters.getOrElse("delimiter", ",")
+    val createDF = parameters.getOrElse("createDF", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
@@ -72,7 +74,12 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
     val fileLocation = copy(sftpClient, path, copyLatest.toBoolean)
 
-    DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, sqlContext)
+    if (!createDF.toBoolean) {
+      logger.info("Returning an empty dataframe after copying files...")
+      createReturnRelation(sqlContext, schema)
+    } else {
+      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, sqlContext)
+    }
   }
 
   override def createRelation(
@@ -123,11 +130,14 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
   }
 
-  private def createReturnRelation(data: DataFrame) = {
+  private def createReturnRelation(data: DataFrame): BaseRelation = {
+    createReturnRelation(data.sqlContext, data.schema)
+  }
 
+  private def createReturnRelation(sqlContext: SQLContext, schema: StructType): BaseRelation = {
     new BaseRelation {
-      override def sqlContext: SQLContext = data.sqlContext
-      override def schema: StructType = data.schema
+      override def sqlContext: SQLContext = sqlContext
+      override def schema: StructType = schema
     }
   }
 
