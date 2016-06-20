@@ -59,6 +59,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val delimiter = parameters.getOrElse("delimiter", ",")
     val createDF = parameters.getOrElse("createDF", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
+    val tempFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -72,7 +73,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
-    val fileLocation = copy(sftpClient, path, copyLatest.toBoolean)
+    val fileLocation = copy(sftpClient, path, tempFolder, copyLatest.toBoolean)
 
     if (!createDF.toBoolean) {
       logger.info("Returning an empty dataframe after copying files...")
@@ -97,6 +98,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val fileType = parameters.getOrElse("fileType", sys.error("File type has to be provided using 'fileType' option"))
     val header = parameters.getOrElse("header", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
+    val tmpFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -104,7 +106,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
-    val tempFile = writeToTemp(sqlContext, data, fileType, header)
+    val tempFile = writeToTemp(sqlContext, data, tmpFolder, fileType, header)
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
   }
@@ -141,19 +143,18 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
   }
 
-  private def copy(sftpClient: SFTPClient, source: String, latest: Boolean): String = {
+  private def copy(sftpClient: SFTPClient, source: String,
+      tempFolder: String, latest: Boolean): String = {
     var copiedFilePath: String = null
     try {
-      val tempDir = System.getProperty("java.io.tmpdir")
-      val target = tempDir + File.separator + FilenameUtils.getName(source)
+      val target = tempFolder + File.separator + FilenameUtils.getName(source)
       copiedFilePath = target
       if (latest) {
-        copiedFilePath = sftpClient.copyLatest(source, tempDir)
+        copiedFilePath = sftpClient.copyLatest(source, tempFolder)
       } else {
         logger.info("Copying " + source + " to " + target)
         copiedFilePath = sftpClient.copy(source, target)
       }
-
 
       copiedFilePath
     } finally {
@@ -169,10 +170,10 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
   }
 
-  private def writeToTemp(sqlContext: SQLContext, df: DataFrame, fileType: String, header: String) : String = {
-    val tempDir = System.getProperty("java.io.tmpdir")
+  private def writeToTemp(sqlContext: SQLContext, df: DataFrame,
+      tempFolder: String, fileType: String, header: String) : String = {
     val r = scala.util.Random
-    val tempLocation = tempDir + File.separator + "spark_sftp_connection_temp" + r.nextInt(1000)
+    val tempLocation = tempFolder + File.separator + "spark_sftp_connection_temp" + r.nextInt(1000)
     addShutdownHook(tempLocation);
 
     if (fileType.equals("json")) {
