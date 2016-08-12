@@ -23,8 +23,8 @@ sparkComponents += "sql"
 resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
 
 // Spark packages
-spDependencies += "databricks/spark-avro:2.0.1-s_2.10"
-spDependencies += "databricks/spark-csv:1.3.0-s_2.10"
+spDependencies += "com.databricks/spark-avro_2.10:2.0.1"
+spDependencies += "com.databricks/spark-csv_2.10:1.3.0"
 
 // Test dependencies
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
