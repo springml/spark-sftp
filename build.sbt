@@ -4,15 +4,15 @@ organization := "com.springml"
 
 scalaVersion := "2.10.4"
 
-sparkVersion := "1.6.1"
+sparkVersion := "1.6.2"
 
 spName := "springml/spark-sftp"
 
-version := "1.0.1"
+version := "1.0.2"
 
 // Dependent libraries
 libraryDependencies ++= Seq(
-  "com.springml" % "sftp.client" % "1.0.1",
+  "com.springml" % "sftp.client" % "1.0.2",
   "org.mockito" % "mockito-core" % "2.0.31-beta"
 )
 

@@ -60,6 +60,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val createDF = parameters.getOrElse("createDF", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
     val tempFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
+    val cryptoKey = parameters.getOrElse("cryptoKey", null)
+    val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -72,7 +74,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       "false"
     }
 
-    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
+    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port, cryptoKey, cryptoAlgorithm)
     val fileLocation = copy(sftpClient, path, tempFolder, copyLatest.toBoolean)
 
     if (!createDF.toBoolean) {
@@ -99,13 +101,15 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val header = parameters.getOrElse("header", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
     val tmpFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
+    val cryptoKey = parameters.getOrElse("cryptoKey", null)
+    val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
 
-    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port)
+    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port, cryptoKey, cryptoAlgorithm)
     val tempFile = writeToTemp(sqlContext, data, tmpFolder, fileType, header)
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
@@ -121,7 +125,9 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       password: Option[String],
       pemFileLocation: Option[String],
       host: String,
-      port: Option[String]) : SFTPClient = {
+      port: Option[String],
+      cryptoKey : String,
+      cryptoAlgorithm : String) : SFTPClient = {
 
     val sftpPort = if (port != null && port.isDefined) {
       port.get.toInt
@@ -129,7 +135,14 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       22
     }
 
-    new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
+    val cryptoEnabled = cryptoKey != null
+
+    if (cryptoEnabled) {
+      new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password),
+          host, sftpPort, cryptoEnabled, cryptoKey, cryptoAlgorithm)
+    } else {
+      new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
+    }
   }
 
   private def createReturnRelation(data: DataFrame): BaseRelation = {
