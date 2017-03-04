@@ -149,10 +149,10 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     createReturnRelation(data.sqlContext, data.schema)
   }
 
-  private def createReturnRelation(sqlContext: SQLContext, schema: StructType): BaseRelation = {
+  private def createReturnRelation(sqlContextVar: SQLContext, schemaVar: StructType): BaseRelation = {
     new BaseRelation {
-      override def sqlContext: SQLContext = sqlContext
-      override def schema: StructType = schema
+      override def sqlContext: SQLContext = sqlContextVar
+      override def schema: StructType = schemaVar
     }
   }
 

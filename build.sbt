@@ -2,13 +2,13 @@ name := "spark-sftp"
 
 organization := "com.springml"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.8"
 
-sparkVersion := "1.6.2"
+sparkVersion := "2.1.0"
 
 spName := "springml/spark-sftp"
 
-version := "1.0.2"
+version := "1.1.0"
 
 // Dependent libraries
 libraryDependencies ++= Seq(
@@ -23,8 +23,8 @@ sparkComponents += "sql"
 resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
 
 // Spark packages
-spDependencies += "com.databricks/spark-avro_2.10:2.0.1"
-spDependencies += "com.databricks/spark-csv_2.10:1.3.0"
+spDependencies += "com.databricks/spark-avro_2.11:3.2.0"
+spDependencies += "com.databricks/spark-csv_2.11:1.3.0"
 
 // Test dependencies
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
