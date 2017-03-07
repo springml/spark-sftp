@@ -5,7 +5,7 @@ A library for constructing dataframes by downloading files from SFTP and writing
 ## Requirements
 
 This library requires Spark 2.x.
-* For Spark 1.x, please check [spark1.x](https://github.com/springml/spark-sftp/tree/spark1.x) branch. *
+** For Spark 1.x, please check [spark1.x](https://github.com/springml/spark-sftp/tree/spark1.x) branch. **
 
 ## Linking
 You can link against this library in your program at the following ways:
