@@ -14,14 +14,14 @@ You can link against this library in your program at the following ways:
 <dependency>
 	<groupId>com.springml</groupId>
 	<artifactId>spark-sftp_2.10</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 </dependency>
 
 ```
 
 ### SBT Dependency
 ```
-libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.1"
+libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.2"
 ```
 
 
@@ -29,7 +29,7 @@ libraryDependencies += "com.springml" % "spark-sftp_2.10" % "1.0.1"
 This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
 
 ```
-$ bin/spark-shell --packages com.springml:spark-sftp_2.10:1.0.1
+$ bin/spark-shell --packages com.springml:spark-sftp_2.10:1.0.2
 ```
 
 ## Features
@@ -108,7 +108,7 @@ Spark 1.5+:
 ```r
 library(SparkR)
 
-Sys.setenv('SPARKR_SUBMIT_ARGS'='"--packages" "com.springml:spark-sftp_2.10:1.0.1" "sparkr-shell"')
+Sys.setenv('SPARKR_SUBMIT_ARGS'='"--packages" "com.springml:spark-sftp_2.10:1.0.2" "sparkr-shell"')
 sqlContext <- sparkRSQL.init(sc)
 
 # Construct Spark dataframe using file in FTP server
