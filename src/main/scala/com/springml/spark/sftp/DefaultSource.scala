@@ -81,7 +81,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       logger.info("Returning an empty dataframe after copying files...")
       createReturnRelation(sqlContext, schema)
     } else {
-      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, sqlContext)
+      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, sqlContext,schema)
     }
   }
 
