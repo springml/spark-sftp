@@ -22,7 +22,8 @@ case class DatasetRelation(
     inferSchema: String,
     header: String,
     delimiter: String,
-    sqlContext: SQLContext) extends BaseRelation with TableScan {
+    sqlContext: SQLContext,
+    customSchema: StructType) extends BaseRelation with TableScan {
 
     private val logger = Logger.getLogger(classOf[DatasetRelation])
 
@@ -35,13 +36,25 @@ case class DatasetRelation(
       } else if (fileType.equals("parquet")) {
         df = sqlContext.read.parquet(fileLocation)
       } else if (fileType.equals("csv")) {
-        df = sqlContext.
-          read.
-          format("com.databricks.spark.csv").
-          option("header", header).
-          option("delimiter", delimiter).
-          option("inferSchema", inferSchema).
-          load(fileLocation)
+        if(inferSchema.equals("false") && customSchema != null) {
+          df = sqlContext.
+            read.
+            format("com.databricks.spark.csv").
+            option("header", header).
+            option("delimiter", delimiter).
+            option("inferSchema", inferSchema).
+            schema(customSchema).
+            load(fileLocation)
+        }
+        else {
+          df = sqlContext.
+            read.
+            format("com.databricks.spark.csv").
+            option("header", header).
+            option("delimiter", delimiter).
+            option("inferSchema", inferSchema).
+            load(fileLocation)
+        }
       } else if (fileType.equals("avro")) {
         df = sqlContext.read.avro(fileLocation)
       }
