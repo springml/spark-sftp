@@ -49,6 +49,7 @@ This library requires following options:
 * `fileType`: Type of the file. Supported types are csv, json, avro and parquet
 * `inferSchema`: (Optional) InferSchema from the file content. Currently applicable only for csv fileType
 * `header`: (Optional) Applicable only for csv fileType. Is the first row in CSV file is header. 
+* `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
 
 
 ### Scala API
@@ -61,6 +62,7 @@ val df = spark.read.
             option("username", "SFTP_USER").
             option("password", "****").
             option("fileType", "csv").
+            option("delimiter", ";").
             option("inferSchema", "true").
             load("/ftp/files/sample.csv")
 
@@ -71,6 +73,7 @@ df.write.
       option("username", "SFTP_USER").
       option("password", "****").
       option("fileType", "csv").
+      option("delimiter", ";").
       save("/ftp/files/sample.csv")
 
 ```
