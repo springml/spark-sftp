@@ -4,11 +4,11 @@ organization := "com.springml"
 
 scalaVersion := "2.10.4"
 
-sparkVersion := "1.6.2"
+sparkVersion := "2.1.0"
 
 spName := "springml/spark-sftp"
 
-version := "1.0.2"
+version := "1.0.3"
 
 // Dependent libraries
 libraryDependencies ++= Seq(
