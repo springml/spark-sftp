@@ -98,6 +98,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val tmpFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
     val cryptoKey = parameters.getOrElse("cryptoKey", null)
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
+    val delimiter = parameters.getOrElse("delimiter", ",")
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -105,7 +106,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port, cryptoKey, cryptoAlgorithm)
-    val tempFile = writeToTemp(sqlContext, data, tmpFolder, fileType, header)
+    val tempFile = writeToTemp(sqlContext, data, tmpFolder, fileType, header, delimiter)
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
   }
@@ -144,10 +145,10 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     createReturnRelation(data.sqlContext, data.schema)
   }
 
-  private def createReturnRelation(sqlContext: SQLContext, schema: StructType): BaseRelation = {
+  private def createReturnRelation(sqlContextVar: SQLContext, schemaVar: StructType): BaseRelation = {
     new BaseRelation {
-      override def sqlContext: SQLContext = sqlContext
-      override def schema: StructType = schema
+      override def sqlContext: SQLContext = sqlContextVar
+      override def schema: StructType = schemaVar
     }
   }
 
@@ -166,7 +167,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
       copiedFilePath
     } finally {
-      addShutdownHook(copiedFilePath);
+      addShutdownHook(copiedFilePath)
     }
   }
 
@@ -179,10 +180,10 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
   }
 
   private def writeToTemp(sqlContext: SQLContext, df: DataFrame,
-      tempFolder: String, fileType: String, header: String) : String = {
+      tempFolder: String, fileType: String, header: String, delimiter: String) : String = {
     val r = scala.util.Random
     val tempLocation = tempFolder + File.separator + "spark_sftp_connection_temp" + r.nextInt(1000)
-    addShutdownHook(tempLocation);
+    addShutdownHook(tempLocation)
 
     if (fileType.equals("json")) {
       df.coalesce(1).write.json(tempLocation)
@@ -193,6 +194,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       df.coalesce(1).
           write.
           option("header", header).
+          option("delimiter", delimiter).
           csv(tempLocation)
     } else if (fileType.equals("avro")) {
       df.coalesce(1).write.format("com.databricks.spark.avro").save(tempLocation)

@@ -4,7 +4,7 @@ organization := "com.springml"
 
 scalaVersion := "2.10.4"
 
-sparkVersion := "2.1.0"
+sparkVersion := "1.6.2"
 
 spName := "springml/spark-sftp"
 
