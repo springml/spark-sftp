@@ -15,20 +15,14 @@
  */
 package com.springml.spark.sftp
 
-import org.apache.spark.sql.sources.RelationProvider
-import org.apache.spark.sql.sources.SchemaRelationProvider
-import org.apache.spark.sql.sources.CreatableRelationProvider
-import org.apache.spark.sql.SQLContext
-import org.apache.log4j.Logger
-import org.apache.spark.sql.types.StructType
+import java.io.File
+
 import com.springml.sftp.client.SFTPClient
 import org.apache.commons.io.FilenameUtils
-import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.sources.BaseRelation
-import com.databricks.spark.avro._
-import java.io.File
-import org.apache.commons.io.FileUtils
+import org.apache.log4j.Logger
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
+import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, RelationProvider, SchemaRelationProvider}
+import org.apache.spark.sql.types.StructType
 
 /**
  * Datasource to construct dataframe from a sftp url
@@ -81,7 +75,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       logger.info("Returning an empty dataframe after copying files...")
       createReturnRelation(sqlContext, schema)
     } else {
-      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, sqlContext)
+      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, schema,
+        sqlContext)
     }
   }
 
@@ -197,11 +192,10 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     } else if (fileType.equals("csv")) {
       df.coalesce(1).
           write.
-          format("com.databricks.spark.csv").
           option("header", header).
-          save(tempLocation)
+          csv(tempLocation)
     } else if (fileType.equals("avro")) {
-      df.coalesce(1).write.avro(tempLocation)
+      df.coalesce(1).write.format("com.databricks.spark.avro").save(tempLocation)
     }
 
     copiedFile(tempLocation)

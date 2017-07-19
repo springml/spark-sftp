@@ -1,17 +1,11 @@
 package com.springml.spark.sftp
 
-import org.apache.spark.sql.sources.BaseRelation
-import org.apache.spark.sql.sources.TableScan
-import org.apache.log4j.Logger
-import org.apache.spark.sql.DataFrame
 import com.databricks.spark.avro._
-import com.databricks.spark.csv._
-import org.apache.spark.sql.types.StructType
+import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.SQLContext
-import org.apache.commons.io.FileUtils
-import java.io.File
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.sql.sources.{BaseRelation, TableScan}
+import org.apache.spark.sql.types.StructType
 
 /**
  * Abstract relation class for reading data from file
@@ -22,6 +16,7 @@ case class DatasetRelation(
     inferSchema: String,
     header: String,
     delimiter: String,
+    customSchema: StructType,
     sqlContext: SQLContext) extends BaseRelation with TableScan {
 
     private val logger = Logger.getLogger(classOf[DatasetRelation])
@@ -29,21 +24,24 @@ case class DatasetRelation(
     val df = read()
 
     private def read(): DataFrame = {
+      var dataframeReader = sqlContext.read
+      if (customSchema != null) {
+        dataframeReader = dataframeReader.schema(customSchema)
+      }
+
       var df: DataFrame = null
       if (fileType.equals("json")) {
-        df = sqlContext.read.json(fileLocation)
+        df = dataframeReader.json(fileLocation)
       } else if (fileType.equals("parquet")) {
-        df = sqlContext.read.parquet(fileLocation)
+        df = dataframeReader.parquet(fileLocation)
       } else if (fileType.equals("csv")) {
-        df = sqlContext.
-          read.
-          format("com.databricks.spark.csv").
+        df = dataframeReader.
           option("header", header).
           option("delimiter", delimiter).
           option("inferSchema", inferSchema).
-          load(fileLocation)
+          csv(fileLocation)
       } else if (fileType.equals("avro")) {
-        df = sqlContext.read.avro(fileLocation)
+        df = dataframeReader.avro(fileLocation)
       }
 
       df
