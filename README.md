@@ -16,14 +16,14 @@ You can link against this library in your program at the following ways:
 <dependency>
 	<groupId>com.springml</groupId>
 	<artifactId>spark-sftp_2.11</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.1</version>
 </dependency>
 
 ```
 
 ### SBT Dependency
 ```
-libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.0"
+libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.1"
 ```
 
 
@@ -31,7 +31,7 @@ libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.0"
 This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
 
 ```
-$ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.1.0
+$ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.1.1
 ```
 
 ## Features
@@ -44,6 +44,7 @@ This library requires following options:
 * `username`: SFTP Server Username. 
 * `password`: (Optional) SFTP Server Password. 
 * `pem`: (Optional) Location of PEM file. Either pem or password has to be specified
+* `pemPassphrase`: (Optional) Passphrase for PEM file.
 * `host`: SFTP Host.
 * `port`: (Optional) Port in which SFTP server is running. Default value 22.
 * `fileType`: Type of the file. Supported types are csv, json, avro and parquet

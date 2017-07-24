@@ -44,6 +44,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val username = parameters.get("username")
     val password = parameters.get("password")
     val pemFileLocation = parameters.get("pem")
+    val pemPassphrase = parameters.get("pemPassphrase")
     val host = parameters.getOrElse("host", sys.error("SFTP Host has to be provided using 'host' option"))
     val port = parameters.get("port")
     val path = parameters.getOrElse("path", sys.error("'path' must be specified"))
@@ -68,7 +69,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       "false"
     }
 
-    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port, cryptoKey, cryptoAlgorithm)
+    val sftpClient = getSFTPClient(username, password, pemFileLocation, pemPassphrase, host, port,
+      cryptoKey, cryptoAlgorithm)
     val fileLocation = copy(sftpClient, path, tempFolder, copyLatest.toBoolean)
 
     if (!createDF.toBoolean) {
@@ -89,6 +91,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val username = parameters.get("username")
     val password = parameters.get("password")
     val pemFileLocation = parameters.get("pem")
+    val pemPassphrase = parameters.get("pemPassphrase")
     val host = parameters.getOrElse("host", sys.error("SFTP Host has to be provided using 'host' option"))
     val port = parameters.get("port")
     val path = parameters.getOrElse("path", sys.error("'path' must be specified"))
@@ -105,7 +108,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
 
-    val sftpClient = getSFTPClient(username, password, pemFileLocation, host, port, cryptoKey, cryptoAlgorithm)
+    val sftpClient = getSFTPClient(username, password, pemFileLocation, pemPassphrase, host, port,
+      cryptoKey, cryptoAlgorithm)
     val tempFile = writeToTemp(sqlContext, data, tmpFolder, fileType, header, delimiter)
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
@@ -120,6 +124,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       username: Option[String],
       password: Option[String],
       pemFileLocation: Option[String],
+      pemPassphrase: Option[String],
       host: String,
       port: Option[String],
       cryptoKey : String,
@@ -134,10 +139,12 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val cryptoEnabled = cryptoKey != null
 
     if (cryptoEnabled) {
-      new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password),
+      new SFTPClient(getValue(pemFileLocation), getValue(pemPassphrase), getValue(username),
+        getValue(password),
           host, sftpPort, cryptoEnabled, cryptoKey, cryptoAlgorithm)
     } else {
-      new SFTPClient(getValue(pemFileLocation), getValue(username), getValue(password), host, sftpPort)
+      new SFTPClient(getValue(pemFileLocation), getValue(pemPassphrase), getValue(username),
+        getValue(password), host, sftpPort)
     }
   }
 
