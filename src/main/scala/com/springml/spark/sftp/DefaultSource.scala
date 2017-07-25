@@ -19,10 +19,11 @@ import java.io.File
 
 import com.springml.sftp.client.SFTPClient
 import org.apache.commons.io.FilenameUtils
+import org.apache.hadoop.fs.Path
 import org.apache.log4j.Logger
-import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, RelationProvider, SchemaRelationProvider}
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 
 /**
  * Datasource to construct dataframe from a sftp url
@@ -55,6 +56,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val createDF = parameters.getOrElse("createDF", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
     val tempFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
+    val hdfsTemp = parameters.getOrElse("hdfsTempLocation", tempFolder)
     val cryptoKey = parameters.getOrElse("cryptoKey", null)
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
 
@@ -71,7 +73,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, pemPassphrase, host, port,
       cryptoKey, cryptoAlgorithm)
-    val fileLocation = copy(sftpClient, path, tempFolder, copyLatest.toBoolean)
+    val copiedFileLocation = copy(sftpClient, path, tempFolder, copyLatest.toBoolean)
+    val fileLocation = copyToHdfs(sqlContext, copiedFileLocation, hdfsTemp)
 
     if (!createDF.toBoolean) {
       logger.info("Returning an empty dataframe after copying files...")
@@ -99,6 +102,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val header = parameters.getOrElse("header", "true")
     val copyLatest = parameters.getOrElse("copyLatest", "false")
     val tmpFolder = parameters.getOrElse("tempLocation", System.getProperty("java.io.tmpdir"))
+    val hdfsTemp = parameters.getOrElse("hdfsTempLocation", tmpFolder)
     val cryptoKey = parameters.getOrElse("cryptoKey", null)
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
     val delimiter = parameters.getOrElse("delimiter", ",")
@@ -110,9 +114,39 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, pemPassphrase, host, port,
       cryptoKey, cryptoAlgorithm)
-    val tempFile = writeToTemp(sqlContext, data, tmpFolder, fileType, header, delimiter)
+    val tempFile = writeToTemp(sqlContext, data, hdfsTemp, tmpFolder, fileType, header, delimiter)
+
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
+  }
+
+  private def copyToHdfs(sqlContext: SQLContext, fileLocation : String,
+                         hdfsTemp : String): String  = {
+    val hadoopConf = sqlContext.sparkContext.hadoopConfiguration
+    val hdfsPath = new Path(fileLocation)
+    val fs = hdfsPath.getFileSystem(hadoopConf)
+    if ("hdfs".equalsIgnoreCase(fs.getScheme)) {
+      fs.copyFromLocalFile(new Path(fileLocation), new Path(hdfsTemp))
+      val filePath = hdfsTemp + "/" + hdfsPath.getName
+      fs.deleteOnExit(new Path(filePath))
+      return filePath
+    } else {
+      return fileLocation
+    }
+  }
+
+  private def copyFromHdfs(sqlContext: SQLContext, hdfsTemp : String,
+                           fileLocation : String): String  = {
+    val hadoopConf = sqlContext.sparkContext.hadoopConfiguration
+    val hdfsPath = new Path(hdfsTemp)
+    val fs = hdfsPath.getFileSystem(hadoopConf)
+    if ("hdfs".equalsIgnoreCase(fs.getScheme)) {
+      fs.copyToLocalFile(new Path(hdfsTemp), new Path(fileLocation))
+      fs.deleteOnExit(new Path(hdfsTemp))
+      return fileLocation
+    } else {
+      return hdfsTemp
+    }
   }
 
   private def upload(source: String, target: String, sftpClient: SFTPClient) {
@@ -187,27 +221,32 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
   }
 
   private def writeToTemp(sqlContext: SQLContext, df: DataFrame,
-      tempFolder: String, fileType: String, header: String, delimiter: String) : String = {
+                          hdfsTemp: String, tempFolder: String, fileType: String, header: String,
+                          delimiter: String) : String = {
     val r = scala.util.Random
-    val tempLocation = tempFolder + File.separator + "spark_sftp_connection_temp" + r.nextInt(1000)
-    addShutdownHook(tempLocation)
+    val randomSuffix = "spark_sftp_connection_temp" + r.nextInt(1000)
+    val hdfsTempLocation = hdfsTemp + File.separator + randomSuffix
+    val localTempLocation = tempFolder + File.separator + randomSuffix
+
+    addShutdownHook(localTempLocation)
 
     if (fileType.equals("json")) {
-      df.coalesce(1).write.json(tempLocation)
+      df.coalesce(1).write.json(hdfsTempLocation)
     } else if (fileType.equals("parquet")) {
-      df.coalesce(1).write.parquet(tempLocation)
-      return copiedParquetFile(tempLocation)
+      df.coalesce(1).write.parquet(hdfsTempLocation)
+      return copiedParquetFile(hdfsTempLocation)
     } else if (fileType.equals("csv")) {
       df.coalesce(1).
           write.
           option("header", header).
           option("delimiter", delimiter).
-          csv(tempLocation)
+          csv(hdfsTempLocation)
     } else if (fileType.equals("avro")) {
-      df.coalesce(1).write.format("com.databricks.spark.avro").save(tempLocation)
+      df.coalesce(1).write.format("com.databricks.spark.avro").save(hdfsTempLocation)
     }
 
-    copiedFile(tempLocation)
+    copyFromHdfs(sqlContext, hdfsTempLocation, localTempLocation)
+    copiedFile(localTempLocation)
   }
 
   private def addShutdownHook(tempLocation: String) {
