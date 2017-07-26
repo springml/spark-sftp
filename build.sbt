@@ -8,7 +8,7 @@ sparkVersion := "1.6.2"
 
 spName := "springml/spark-sftp"
 
-version := "1.0.2"
+version := "1.0.3"
 
 // Dependent libraries
 libraryDependencies ++= Seq(

@@ -22,6 +22,7 @@ case class DatasetRelation(
     inferSchema: String,
     header: String,
     delimiter: String,
+    customSchema: StructType,
     sqlContext: SQLContext) extends BaseRelation with TableScan {
 
     private val logger = Logger.getLogger(classOf[DatasetRelation])
@@ -29,21 +30,25 @@ case class DatasetRelation(
     val df = read()
 
     private def read(): DataFrame = {
+      var dataframeReader = sqlContext.read
+      if (customSchema != null) {
+        dataframeReader = dataframeReader.schema(customSchema)
+      }
+
       var df: DataFrame = null
       if (fileType.equals("json")) {
-        df = sqlContext.read.json(fileLocation)
+        df = dataframeReader.json(fileLocation)
       } else if (fileType.equals("parquet")) {
-        df = sqlContext.read.parquet(fileLocation)
+        df = dataframeReader.parquet(fileLocation)
       } else if (fileType.equals("csv")) {
-        df = sqlContext.
-          read.
+        df = dataframeReader.
           format("com.databricks.spark.csv").
           option("header", header).
           option("delimiter", delimiter).
           option("inferSchema", inferSchema).
           load(fileLocation)
       } else if (fileType.equals("avro")) {
-        df = sqlContext.read.avro(fileLocation)
+        df = dataframeReader.avro(fileLocation)
       }
 
       df
