@@ -16,6 +16,7 @@
 package com.springml.spark.sftp
 
 import java.io.File
+import java.util.UUID
 
 import com.springml.sftp.client.SFTPClient
 import org.apache.commons.io.FilenameUtils
@@ -119,7 +120,6 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
   }
-
   private def copyToHdfs(sqlContext: SQLContext, fileLocation : String,
                          hdfsTemp : String): String  = {
     val hadoopConf = sqlContext.sparkContext.hadoopConfiguration
@@ -223,8 +223,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
   private def writeToTemp(sqlContext: SQLContext, df: DataFrame,
                           hdfsTemp: String, tempFolder: String, fileType: String, header: String,
                           delimiter: String) : String = {
-    val r = scala.util.Random
-    val randomSuffix = "spark_sftp_connection_temp" + r.nextInt(1000)
+    val randomSuffix = "spark_sftp_connection_temp_" + UUID.randomUUID
     val hdfsTempLocation = hdfsTemp + File.separator + randomSuffix
     val localTempLocation = tempFolder + File.separator + randomSuffix
 
