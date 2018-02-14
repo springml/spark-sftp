@@ -268,7 +268,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val files = baseTemp.listFiles().filter { x =>
       (!x.isDirectory()
         && !x.getName.contains("SUCCESS")
-        && !x.isHidden())}
+        && !x.isHidden()
+        && !x.getName.contains(".crc"))}
     files(0).getAbsolutePath
   }
 }
