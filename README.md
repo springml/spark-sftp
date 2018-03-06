@@ -51,7 +51,7 @@ This library requires following options:
 * `inferSchema`: (Optional) InferSchema from the file content. Currently applicable only for csv fileType
 * `header`: (Optional) Applicable only for csv fileType. Is the first row in CSV file is header. 
 * `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
-
+* `codec`: (Optional) Applicable only for csv fileType. Compression codec to use when saving to file. Should be the fully qualified name of a class implementing org.apache.hadoop.io.compress.CompressionCodec or one of case-insensitive shorten names (bzip2, gzip, lz4, and snappy). Defaults to no compression when a codec is not specified.
 
 ### Scala API
 ```scala
@@ -75,6 +75,7 @@ df.write.
       option("password", "****").
       option("fileType", "csv").
       option("delimiter", ";").
+      option("codec", "bzip2").
       save("/ftp/files/sample.csv")
 
 ```
