@@ -19,6 +19,8 @@ import java.io.File
 import java.util.UUID
 
 import com.springml.sftp.client.SFTPClient
+import com.springml.spark.sftp.util.Utils.ImplicitDataFrameWriter
+
 import org.apache.commons.io.FilenameUtils
 import org.apache.hadoop.fs.Path
 import org.apache.log4j.Logger
@@ -107,6 +109,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val cryptoKey = parameters.getOrElse("cryptoKey", null)
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
     val delimiter = parameters.getOrElse("delimiter", ",")
+    val codec = parameters.getOrElse("codec", null)
 
     val supportedFileTypes = List("csv", "json", "avro", "parquet")
     if (!supportedFileTypes.contains(fileType)) {
@@ -115,7 +118,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, pemPassphrase, host, port,
       cryptoKey, cryptoAlgorithm)
-    val tempFile = writeToTemp(sqlContext, data, hdfsTemp, tmpFolder, fileType, header, delimiter)
+    val tempFile = writeToTemp(sqlContext, data, hdfsTemp, tmpFolder, fileType, header, delimiter, codec)
 
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
@@ -222,7 +225,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
   private def writeToTemp(sqlContext: SQLContext, df: DataFrame,
                           hdfsTemp: String, tempFolder: String, fileType: String, header: String,
-                          delimiter: String) : String = {
+                          delimiter: String, codec: String) : String = {
     val randomSuffix = "spark_sftp_connection_temp_" + UUID.randomUUID
     val hdfsTempLocation = hdfsTemp + File.separator + randomSuffix
     val localTempLocation = tempFolder + File.separator + randomSuffix
@@ -239,6 +242,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
           write.
           option("header", header).
           option("delimiter", delimiter).
+          optionNoNull("codec", Option(codec)).
           csv(hdfsTempLocation)
     } else if (fileType.equals("avro")) {
       df.coalesce(1).write.format("com.databricks.spark.avro").save(hdfsTempLocation)
