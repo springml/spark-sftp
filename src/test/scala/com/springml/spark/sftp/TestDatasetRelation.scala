@@ -47,4 +47,11 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
     val rdd = dsr.buildScan()
     assert(2 == rdd.count())
   }
+
+  test ("Read text file") {
+    val fileLocation = getClass.getResource("/plaintext.txt").getPath
+    val dsr = DatasetRelation(fileLocation, "txt", "false", "true", ",", null, ss.sqlContext)
+    val rdd = dsr.buildScan()
+    assert(3 == rdd.count())
+  }
 }

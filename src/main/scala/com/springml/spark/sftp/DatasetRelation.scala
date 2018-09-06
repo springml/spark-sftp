@@ -34,7 +34,10 @@ case class DatasetRelation(
         df = dataframeReader.json(fileLocation)
       } else if (fileType.equals("parquet")) {
         df = dataframeReader.parquet(fileLocation)
-      } else if (fileType.equals("csv")) {
+      } else if (fileType.equals("txt")) {
+        df = dataframeReader.text(fileLocation)
+      }
+      else if (fileType.equals("csv")) {
         df = dataframeReader.
           option("header", header).
           option("delimiter", delimiter).

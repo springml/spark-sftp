@@ -63,7 +63,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val cryptoKey = parameters.getOrElse("cryptoKey", null)
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet")
+    val supportedFileTypes = List("csv", "json", "avro", "parquet","txt")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
@@ -111,7 +111,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val delimiter = parameters.getOrElse("delimiter", ",")
     val codec = parameters.getOrElse("codec", null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet")
+    val supportedFileTypes = List("csv", "json", "avro", "parquet","txt")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
@@ -234,16 +234,19 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
     if (fileType.equals("json")) {
       df.coalesce(1).write.json(hdfsTempLocation)
-    } else if (fileType.equals("parquet")) {
+    } else if (fileType.equals("txt")) {
+      df.coalesce(1).write.text(hdfsTempLocation)
+    }
+    else if (fileType.equals("parquet")) {
       df.coalesce(1).write.parquet(hdfsTempLocation)
       return copiedParquetFile(hdfsTempLocation)
     } else if (fileType.equals("csv")) {
       df.coalesce(1).
-          write.
-          option("header", header).
-          option("delimiter", delimiter).
-          optionNoNull("codec", Option(codec)).
-          csv(hdfsTempLocation)
+        write.
+        option("header", header).
+        option("delimiter", delimiter).
+        optionNoNull("codec", Option(codec)).
+        csv(hdfsTempLocation)
     } else if (fileType.equals("avro")) {
       df.coalesce(1).write.format("com.databricks.spark.avro").save(hdfsTempLocation)
     }
