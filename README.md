@@ -78,7 +78,7 @@ df.write.
       option("codec", "bzip2").
       save("/ftp/files/sample.csv")
 
- / Construct spark dataframe using text file in FTP server
+// Construct spark dataframe using text file in FTP server
  val df = spark.read.
             format("com.springml.spark.sftp").
             option("host", "SFTP_HOST").
