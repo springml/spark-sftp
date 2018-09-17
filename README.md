@@ -47,7 +47,7 @@ This library requires following options:
 * `pemPassphrase`: (Optional) Passphrase for PEM file.
 * `host`: SFTP Host.
 * `port`: (Optional) Port in which SFTP server is running. Default value 22.
-* `fileType`: Type of the file. Supported types are csv, json, avro and parquet
+* `fileType`: Type of the file. Supported types are csv, txt, json, avro and parquet
 * `inferSchema`: (Optional) InferSchema from the file content. Currently applicable only for csv fileType
 * `header`: (Optional) Applicable only for csv fileType. Is the first row in CSV file is header. 
 * `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
@@ -77,6 +77,15 @@ df.write.
       option("delimiter", ";").
       option("codec", "bzip2").
       save("/ftp/files/sample.csv")
+
+// Construct spark dataframe using text file in FTP server
+ val df = spark.read.
+            format("com.springml.spark.sftp").
+            option("host", "SFTP_HOST").
+            option("username", "SFTP_USER").
+            option("password", "****").
+            option("fileType", "txt").
+            load("config")
 
 ```
 
