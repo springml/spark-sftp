@@ -78,6 +78,7 @@ df.write.
       option("codec", "bzip2").
       save("/ftp/files/sample.csv")
 
+
 // Construct spark dataframe using text file in FTP server
  val df = spark.read.
             format("com.springml.spark.sftp").
@@ -86,6 +87,25 @@ df.write.
             option("password", "****").
             option("fileType", "txt").
             load("config")
+            
+ // Construct spark dataframe using xml file in FTP server           
+            val df = spark.read.
+                 format("com.springml.spark.sftp").
+                 option("host", "SFTP_HOST").
+                 option("username", "SFTP_USER").
+                 option("password", "*****").
+                 option("fileType", "xml").
+                 option("rowTag", "YEAR").load("myxml.xml")
+                 
+ // Write dataframe as XML file to FTP server           
+           
+                 df.write.format("com.springml.spark.sftp").
+                 option("host", "SFTP_HOST").
+                 option("username", "SFTP_USER").
+                 option("password", "*****").
+                 option("fileType", "xml").
+                 option("rootTag", "YTD").
+                 option("rowTag", "YEAR").save("myxmlOut.xml.gz")
 
 ```
 

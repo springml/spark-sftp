@@ -62,8 +62,9 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val hdfsTemp = parameters.getOrElse("hdfsTempLocation", tempFolder)
     val cryptoKey = parameters.getOrElse("cryptoKey", null)
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
+    val rowTag = parameters.getOrElse(constants.xmlRowTag, null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet","txt")
+    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
@@ -83,7 +84,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       logger.info("Returning an empty dataframe after copying files...")
       createReturnRelation(sqlContext, schema)
     } else {
-      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, schema,
+      DatasetRelation(fileLocation, fileType, inferSchemaFlag, header, delimiter, rowTag, schema,
         sqlContext)
     }
   }
@@ -110,15 +111,17 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
     val delimiter = parameters.getOrElse("delimiter", ",")
     val codec = parameters.getOrElse("codec", null)
+    val rowTag = parameters.getOrElse(constants.xmlRowTag, null)
+    val rootTag = parameters.getOrElse(constants.xmlRootTag, null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet","txt")
+    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
 
     val sftpClient = getSFTPClient(username, password, pemFileLocation, pemPassphrase, host, port,
       cryptoKey, cryptoAlgorithm)
-    val tempFile = writeToTemp(sqlContext, data, hdfsTemp, tmpFolder, fileType, header, delimiter, codec)
+    val tempFile = writeToTemp(sqlContext, data, hdfsTemp, tmpFolder, fileType, header, delimiter, codec, rowTag, rootTag)
 
     upload(tempFile, path, sftpClient)
     return createReturnRelation(data)
@@ -225,7 +228,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
   private def writeToTemp(sqlContext: SQLContext, df: DataFrame,
                           hdfsTemp: String, tempFolder: String, fileType: String, header: String,
-                          delimiter: String, codec: String) : String = {
+                          delimiter: String, codec: String, rowTag: String, rootTag: String) : String = {
     val randomSuffix = "spark_sftp_connection_temp_" + UUID.randomUUID
     val hdfsTempLocation = hdfsTemp + File.separator + randomSuffix
     val localTempLocation = tempFolder + File.separator + randomSuffix
@@ -236,6 +239,10 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
       df.coalesce(1).write.json(hdfsTempLocation)
     } else if (fileType.equals("txt")) {
       df.coalesce(1).write.text(hdfsTempLocation)
+    } else if (fileType.equals("xml")) {
+      df.coalesce(1).write.format(constants.xmlClass)
+        .option(constants.xmlRowTag, rowTag)
+        .option(constants.xmlRootTag, rootTag).save(hdfsTempLocation)
     }
     else if (fileType.equals("parquet")) {
       df.coalesce(1).write.parquet(hdfsTempLocation)
