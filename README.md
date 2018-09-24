@@ -16,14 +16,14 @@ You can link against this library in your program at the following ways:
 <dependency>
 	<groupId>com.springml</groupId>
 	<artifactId>spark-sftp_2.11</artifactId>
-	<version>1.1.1</version>
+	<version>1.1.3</version>
 </dependency>
 
 ```
 
 ### SBT Dependency
 ```
-libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.1"
+libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.3"
 ```
 
 
@@ -31,7 +31,7 @@ libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.1"
 This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
 
 ```
-$ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.1.1
+$ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.1.3
 ```
 
 ## Features
