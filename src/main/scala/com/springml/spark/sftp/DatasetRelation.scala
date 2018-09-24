@@ -16,6 +16,7 @@ case class DatasetRelation(
     inferSchema: String,
     header: String,
     delimiter: String,
+    rowTag: String,
     customSchema: StructType,
     sqlContext: SQLContext) extends BaseRelation with TableScan {
 
@@ -34,7 +35,14 @@ case class DatasetRelation(
         df = dataframeReader.json(fileLocation)
       } else if (fileType.equals("parquet")) {
         df = dataframeReader.parquet(fileLocation)
-      } else if (fileType.equals("csv")) {
+      } else if (fileType.equals("txt")) {
+        df = dataframeReader.text(fileLocation)
+      } else if (fileType.equals("xml")) {
+        df = dataframeReader.format(constants.xmlClass)
+          .option(constants.xmlRowTag, rowTag)
+          .load(fileLocation)
+      }
+      else if (fileType.equals("csv")) {
         df = dataframeReader.
           option("header", header).
           option("delimiter", delimiter).

@@ -43,7 +43,7 @@ class CustomSchemaTest extends FunSuite with BeforeAndAfterEach {
     val expectedSchema = StructType(columnStruct)
 
     val fileLocation = getClass.getResource("/sample.csv").getPath
-    val dsr = DatasetRelation(fileLocation, "csv", "false", "true", ",", expectedSchema, ss.sqlContext)
+    val dsr = DatasetRelation(fileLocation, "csv", "false", "true", ",", null, expectedSchema, ss.sqlContext)
     val rdd = dsr.buildScan()
 
     assert(dsr.schema.fields.length == columnStruct.length)
@@ -55,7 +55,7 @@ class CustomSchemaTest extends FunSuite with BeforeAndAfterEach {
     val expectedSchema = StructType(columnStruct)
 
     val fileLocation = getClass.getResource("/people.json").getPath
-    val dsr = DatasetRelation(fileLocation, "json", "false", "true", ",", expectedSchema, ss.sqlContext)
+    val dsr = DatasetRelation(fileLocation, "json", "false", "true", ",", null, expectedSchema, ss.sqlContext)
     val rdd = dsr.buildScan()
 
     assert(dsr.schema.fields.length == columnStruct.length)

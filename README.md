@@ -47,11 +47,11 @@ This library requires following options:
 * `pemPassphrase`: (Optional) Passphrase for PEM file.
 * `host`: SFTP Host.
 * `port`: (Optional) Port in which SFTP server is running. Default value 22.
-* `fileType`: Type of the file. Supported types are csv, json, avro and parquet
+* `fileType`: Type of the file. Supported types are csv, txt, json, avro and parquet
 * `inferSchema`: (Optional) InferSchema from the file content. Currently applicable only for csv fileType
 * `header`: (Optional) Applicable only for csv fileType. Is the first row in CSV file is header. 
 * `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
-
+* `codec`: (Optional) Applicable only for csv fileType. Compression codec to use when saving to file. Should be the fully qualified name of a class implementing org.apache.hadoop.io.compress.CompressionCodec or one of case-insensitive shorten names (bzip2, gzip, lz4, and snappy). Defaults to no compression when a codec is not specified.
 
 ### Scala API
 ```scala
@@ -75,7 +75,37 @@ df.write.
       option("password", "****").
       option("fileType", "csv").
       option("delimiter", ";").
+      option("codec", "bzip2").
       save("/ftp/files/sample.csv")
+
+
+// Construct spark dataframe using text file in FTP server
+ val df = spark.read.
+            format("com.springml.spark.sftp").
+            option("host", "SFTP_HOST").
+            option("username", "SFTP_USER").
+            option("password", "****").
+            option("fileType", "txt").
+            load("config")
+            
+ // Construct spark dataframe using xml file in FTP server           
+            val df = spark.read.
+                 format("com.springml.spark.sftp").
+                 option("host", "SFTP_HOST").
+                 option("username", "SFTP_USER").
+                 option("password", "*****").
+                 option("fileType", "xml").
+                 option("rowTag", "YEAR").load("myxml.xml")
+                 
+ // Write dataframe as XML file to FTP server           
+           
+                 df.write.format("com.springml.spark.sftp").
+                 option("host", "SFTP_HOST").
+                 option("username", "SFTP_USER").
+                 option("password", "*****").
+                 option("fileType", "xml").
+                 option("rootTag", "YTD").
+                 option("rowTag", "YEAR").save("myxmlOut.xml.gz")
 
 ```
 
