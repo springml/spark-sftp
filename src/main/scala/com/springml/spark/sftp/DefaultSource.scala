@@ -246,7 +246,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     }
     else if (fileType.equals("parquet")) {
       df.coalesce(1).write.parquet(hdfsTempLocation)
-      return copiedParquetFile(hdfsTempLocation)
+
     } else if (fileType.equals("csv")) {
       df.coalesce(1).
         write.
@@ -266,15 +266,6 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     logger.debug("Adding hook for file " + tempLocation)
     val hook = new DeleteTempFileShutdownHook(tempLocation)
     Runtime.getRuntime.addShutdownHook(hook)
-  }
-
-  private def copiedParquetFile(tempFileLocation: String) : String = {
-    val baseTemp = new File(tempFileLocation)
-    val files = baseTemp.listFiles().filter { x =>
-      (!x.isDirectory()
-          && x.getName.endsWith("parquet")
-          && !x.isHidden())}
-    files(0).getAbsolutePath
   }
 
   private def copiedFile(tempFileLocation: String) : String = {
