@@ -246,7 +246,8 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
                     option("delimiter", delimiter).
                     optionNoNull("codec", Option(codec)).
                     csv(hdfsTempLocation)
-
+      case "txt" => df.coalesce(1).write.text(hdfsTempLocation)
+      case "avro" => df.coalesce(1).write.format("com.databricks.spark.avro").save(hdfsTempLocation)
       case _ => df.coalesce(1).write.format(fileType).save(hdfsTempLocation)
     }
 
