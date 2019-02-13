@@ -37,7 +37,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
   /**
    * Copy the file from SFTP to local location and then create dataframe using local file
    */
-  override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]) = {
+  override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]):BaseRelation = {
     createRelation(sqlContext, parameters, null)
   }
 
@@ -114,7 +114,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val rowTag = parameters.getOrElse(constants.xmlRowTag, null)
     val rootTag = parameters.getOrElse(constants.xmlRootTag, null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml")
+    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml","orc")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
@@ -235,27 +235,19 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
     addShutdownHook(localTempLocation)
 
-    if (fileType.equals("json")) {
-      df.coalesce(1).write.json(hdfsTempLocation)
-    } else if (fileType.equals("txt")) {
-      df.coalesce(1).write.text(hdfsTempLocation)
-    } else if (fileType.equals("xml")) {
-      df.coalesce(1).write.format(constants.xmlClass)
-        .option(constants.xmlRowTag, rowTag)
-        .option(constants.xmlRootTag, rootTag).save(hdfsTempLocation)
-    }
-    else if (fileType.equals("parquet")) {
-      df.coalesce(1).write.parquet(hdfsTempLocation)
+    fileType match {
 
-    } else if (fileType.equals("csv")) {
-      df.coalesce(1).
-        write.
-        option("header", header).
-        option("delimiter", delimiter).
-        optionNoNull("codec", Option(codec)).
-        csv(hdfsTempLocation)
-    } else if (fileType.equals("avro")) {
-      df.coalesce(1).write.format("com.databricks.spark.avro").save(hdfsTempLocation)
+      case "xml" =>  df.coalesce(1).write.format(constants.xmlClass)
+                    .option(constants.xmlRowTag, rowTag)
+                    .option(constants.xmlRootTag, rootTag).save(hdfsTempLocation)
+      case "csv" => df.coalesce(1).
+                    write.
+                    option("header", header).
+                    option("delimiter", delimiter).
+                    optionNoNull("codec", Option(codec)).
+                    csv(hdfsTempLocation)
+
+      case _ => df.coalesce(1).write.format(fileType).save(hdfsTempLocation)
     }
 
     copyFromHdfs(sqlContext, hdfsTempLocation, localTempLocation)
@@ -267,6 +259,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val hook = new DeleteTempFileShutdownHook(tempLocation)
     Runtime.getRuntime.addShutdownHook(hook)
   }
+
 
   private def copiedFile(tempFileLocation: String) : String = {
     val baseTemp = new File(tempFileLocation)
