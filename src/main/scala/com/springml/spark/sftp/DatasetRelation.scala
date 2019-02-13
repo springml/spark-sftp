@@ -31,28 +31,21 @@ case class DatasetRelation(
       }
 
       var df: DataFrame = null
-      if (fileType.equals("json")) {
-        df = dataframeReader.json(fileLocation)
-      } else if (fileType.equals("parquet")) {
-        df = dataframeReader.parquet(fileLocation)
-      } else if (fileType.equals("txt")) {
-        df = dataframeReader.text(fileLocation)
-      } else if (fileType.equals("xml")) {
-        df = dataframeReader.format(constants.xmlClass)
+
+      df = fileType match {
+        case "avro" => dataframeReader.avro(fileLocation)
+        case "txt" => dataframeReader.format("text").load(fileLocation)
+        case "xml" => dataframeReader.format(constants.xmlClass)
           .option(constants.xmlRowTag, rowTag)
           .load(fileLocation)
-      }
-      else if (fileType.equals("csv")) {
-        df = dataframeReader.
+        case "csv" => dataframeReader.
           option("header", header).
           option("delimiter", delimiter).
           option("inferSchema", inferSchema).
           csv(fileLocation)
-      } else if (fileType.equals("avro")) {
-        df = dataframeReader.avro(fileLocation)
+        case _ => dataframeReader.format(fileType).load(fileLocation)
       }
-
-      df
+     df
     }
 
     override def schema: StructType = {
