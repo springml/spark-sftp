@@ -10,7 +10,7 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
   var ss: SparkSession = _
 
   override def beforeEach() {
-    ss = SparkSession.builder().master("local").appName("Test Dataset Relation").getOrCreate()
+    ss = SparkSession.builder().master("local").enableHiveSupport().appName("Test Dataset Relation").getOrCreate()
   }
 
   test ("Read CSV") {
@@ -58,6 +58,12 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
   test ("Read xml file") {
     val fileLocation = getClass.getResource("/books.xml").getPath
     val dsr = DatasetRelation(fileLocation, "xml", "false", "true", ",", "book", null, ss.sqlContext)
+    val rdd = dsr.buildScan()
+    assert(12 == rdd.count())
+  }
+  test ("Read orc file") {
+    val fileLocation = getClass.getResource("/books.orc").getPath
+    val dsr = DatasetRelation(fileLocation, "orc", "false", "true", ",", "book", null, ss.sqlContext)
     val rdd = dsr.buildScan()
     assert(12 == rdd.count())
   }

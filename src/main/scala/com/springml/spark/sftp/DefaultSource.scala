@@ -64,7 +64,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
     val rowTag = parameters.getOrElse(constants.xmlRowTag, null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml")
+    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml","orc")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
