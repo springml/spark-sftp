@@ -29,6 +29,7 @@ spDependencies += "com.databricks/spark-avro_2.11:3.2.0"
 // Test dependencies
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 libraryDependencies += "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api")
+libraryDependencies +=  "org.apache.spark" %% "spark-hive" % "2.1.0" % "test"
 
 // licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
