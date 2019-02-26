@@ -1,0 +1,6 @@
+ProposalId,OpportunityId,Clicks,Impressions,Message
+103,006B0000002ndnuIAA,30,133,"test
+multiline \"here we have a quote\"
+message",
+101,006B0000002ndnkIAA,12,73,"regular message"
+102,006B0000002ndnpIAA,20,97,"regular message"

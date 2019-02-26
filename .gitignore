@@ -20,3 +20,6 @@ project/plugins/project/
 .project
 .settings/
 .cache-tests
+
+# intellij
+.idea

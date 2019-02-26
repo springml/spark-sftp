@@ -4,11 +4,11 @@ organization := "com.springml"
 
 scalaVersion := "2.11.8"
 
-sparkVersion := "2.1.0"
+sparkVersion := "2.3.0"
 
 spName := "springml/spark-sftp"
 
-version := "1.1.3"
+version := "1.1.4"
 
 // Dependent libraries
 libraryDependencies ++= Seq(
@@ -29,8 +29,9 @@ spDependencies += "com.databricks/spark-avro_2.11:3.2.0"
 // Test dependencies
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 libraryDependencies += "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api")
-libraryDependencies +=  "org.apache.spark" %% "spark-hive" % "2.1.0" % "test"
+libraryDependencies +=  "org.apache.spark" %% "spark-hive" % sparkVersion.value % "test"
 
+spIgnoreProvided := true
 // licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
