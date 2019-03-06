@@ -51,6 +51,9 @@ This library requires following options:
 * `inferSchema`: (Optional) InferSchema from the file content. Currently applicable only for csv fileType
 * `header`: (Optional) Applicable only for csv fileType. Is the first row in CSV file is header. 
 * `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
+* `quote`: (Optional) Set the quote character. Applicable only for csv fileType. Default is ".
+* `escape`: (Optional) Set the escape character. Applicable only for csv fileType. Default is \.
+* `multiLine`: (Optional) Set the multiline. Applicable only for csv fileType. Default is false.
 * `codec`: (Optional) Applicable only for csv fileType. Compression codec to use when saving to file. Should be the fully qualified name of a class implementing org.apache.hadoop.io.compress.CompressionCodec or one of case-insensitive shorten names (bzip2, gzip, lz4, and snappy). Defaults to no compression when a codec is not specified.
 
 ### Scala API
@@ -64,6 +67,9 @@ val df = spark.read.
             option("password", "****").
             option("fileType", "csv").
             option("delimiter", ";").
+            option("quote", "\"").
+            option("escape", "\\").
+            option("multiLine", "true").
             option("inferSchema", "true").
             load("/ftp/files/sample.csv")
 

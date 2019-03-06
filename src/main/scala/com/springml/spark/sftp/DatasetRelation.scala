@@ -16,6 +16,9 @@ case class DatasetRelation(
     inferSchema: String,
     header: String,
     delimiter: String,
+    quote: String,
+    escape: String,
+    multiLine: String,
     rowTag: String,
     customSchema: StructType,
     sqlContext: SQLContext) extends BaseRelation with TableScan {
@@ -41,6 +44,9 @@ case class DatasetRelation(
         case "csv" => dataframeReader.
           option("header", header).
           option("delimiter", delimiter).
+          option("quote", quote).
+          option("escape", escape).
+          option("multiLine", multiLine).
           option("inferSchema", inferSchema).
           csv(fileLocation)
         case _ => dataframeReader.format(fileType).load(fileLocation)
