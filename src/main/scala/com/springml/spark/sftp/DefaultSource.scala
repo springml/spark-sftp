@@ -270,14 +270,17 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     Runtime.getRuntime.addShutdownHook(hook)
   }
 
-
   private def copiedFile(tempFileLocation: String) : String = {
     val baseTemp = new File(tempFileLocation)
     val files = baseTemp.listFiles().filter { x =>
       (!x.isDirectory()
         && !x.getName.contains("SUCCESS")
         && !x.isHidden()
-        && !x.getName.contains(".crc"))}
+        && !x.getName.contains(".crc")
+        && !x.getName.contains("_committed_")
+        && !x.getName.contains("_started_")
+        )
+    }
     files(0).getAbsolutePath
   }
 }
