@@ -1,6 +1,5 @@
 package com.springml.spark.sftp
 
-import com.databricks.spark.avro._
 import org.apache.log4j.Logger
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
@@ -36,7 +35,6 @@ case class DatasetRelation(
       var df: DataFrame = null
 
       df = fileType match {
-        case "avro" => dataframeReader.avro(fileLocation)
         case "txt" => dataframeReader.format("text").load(fileLocation)
         case "xml" => dataframeReader.format(constants.xmlClass)
           .option(constants.xmlRowTag, rowTag)

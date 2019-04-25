@@ -67,7 +67,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val cryptoAlgorithm = parameters.getOrElse("cryptoAlgorithm", "AES")
     val rowTag = parameters.getOrElse(constants.xmlRowTag, null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml","orc")
+    val supportedFileTypes = List("csv", "json", "parquet", "txt", "xml","orc")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
@@ -120,7 +120,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val rowTag = parameters.getOrElse(constants.xmlRowTag, null)
     val rootTag = parameters.getOrElse(constants.xmlRootTag, null)
 
-    val supportedFileTypes = List("csv", "json", "avro", "parquet", "txt", "xml","orc")
+    val supportedFileTypes = List("csv", "json", "parquet", "txt", "xml","orc")
     if (!supportedFileTypes.contains(fileType)) {
       sys.error("fileType " + fileType + " not supported. Supported file types are " + supportedFileTypes)
     }
@@ -256,7 +256,6 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
                     optionNoNull("codec", Option(codec)).
                     csv(hdfsTempLocation)
       case "txt" => df.coalesce(1).write.text(hdfsTempLocation)
-      case "avro" => df.coalesce(1).write.format("com.databricks.spark.avro").save(hdfsTempLocation)
       case _ => df.coalesce(1).write.format(fileType).save(hdfsTempLocation)
     }
 

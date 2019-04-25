@@ -42,13 +42,6 @@ class TestDatasetRelation extends FunSuite with BeforeAndAfterEach {
     assert(3 == rdd.count())
   }
 
-  test ("Read AVRO") {
-    val fileLocation = getClass.getResource("/users.avro").getPath
-    val dsr = DatasetRelation(fileLocation, "avro", "false", "true", ",", "\"", "\\", "false", null, null, ss.sqlContext)
-    val rdd = dsr.buildScan()
-    assert(2 == rdd.count())
-  }
-
   test ("Read parquet") {
     val fileLocation = getClass.getResource("/users.parquet").getPath
     val dsr = DatasetRelation(fileLocation, "parquet", "false", "true", ",", "\"", "\\", "false", null, null, ss.sqlContext)
