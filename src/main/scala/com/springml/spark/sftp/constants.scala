@@ -8,5 +8,6 @@ object constants {
   val xmlClass: String = "com.databricks.spark.xml"
   val xmlRowTag: String = "rowTag"
   val xmlRootTag: String = "rootTag"
+  val coalescePartitionsConfKey: String = "spark.sftp.coalesce.partitions"
 
 }
