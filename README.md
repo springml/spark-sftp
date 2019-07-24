@@ -83,6 +83,19 @@ df.write.
       option("delimiter", ";").
       option("codec", "bzip2").
       save("/ftp/files/sample.csv")
+      
+// Configuration to write input DataFrame into n-part files
+spark.conf.set("spark.sftp.coalesce.partitions", 4)
+
+df.write.
+      format("com.springml.spark.sftp").
+      option("host", "SFTP_HOST").
+      option("username", "SFTP_USER").
+      option("password", "****").
+      option("fileType", "csv").
+      option("delimiter", ";").
+      save("/ftp/files/")
+
 
 
 // Construct spark dataframe using text file in FTP server
