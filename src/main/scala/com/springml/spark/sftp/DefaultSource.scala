@@ -137,7 +137,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val hadoopConf = sqlContext.sparkContext.hadoopConfiguration
     val hdfsPath = new Path(fileLocation)
     val fs = hdfsPath.getFileSystem(hadoopConf)
-    if ("hdfs".equalsIgnoreCase(fs.getScheme)) {
+    if (!"file".equalsIgnoreCase(fs.getScheme)) {
       fs.copyFromLocalFile(new Path(fileLocation), new Path(hdfsTemp))
       val filePath = hdfsTemp + "/" + hdfsPath.getName
       fs.deleteOnExit(new Path(filePath))
@@ -152,7 +152,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val hadoopConf = sqlContext.sparkContext.hadoopConfiguration
     val hdfsPath = new Path(hdfsTemp)
     val fs = hdfsPath.getFileSystem(hadoopConf)
-    if ("hdfs".equalsIgnoreCase(fs.getScheme)) {
+    if (!"file".equalsIgnoreCase(fs.getScheme)) {
       fs.copyToLocalFile(new Path(hdfsTemp), new Path(fileLocation))
       fs.deleteOnExit(new Path(hdfsTemp))
       return fileLocation
