@@ -1,6 +1,6 @@
 # Spark SFTP Connector Library
 
-A library for constructing dataframes by downloading files from SFTP and writing dataframe to a SFTP server
+A library for constructing dataframes by downloading files from and writing dataframes to an SFTP server.
 
 ## Requirements
 
@@ -28,38 +28,38 @@ libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.3"
 
 
 ## Using with Spark shell
-This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
+This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the `spark-shell`:
 
 ```
 $ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.1.3
 ```
 
 ## Features
-This package can be used to construct spark dataframe by downloading the files from SFTP server.
+This package can be used to construct a Spark dataframe by downloading files from an SFTP server.
 
-This package can also be used to write spark dataframe as a csv|json|acro tp SFTP server
+This package can also be used to write spark a dataframe as a `csv|json|avro` file to an SFTP server
 
-This library requires following options:
-* `path`: FTP URL of the file to be used for dataframe construction
+This library supports following options:
+* `path`: FTP URL of the file to be used for dataframe construction.
 * `username`: SFTP Server Username. 
 * `password`: (Optional) SFTP Server Password. 
-* `pem`: (Optional) Location of PEM file. Either pem or password has to be specified
+* `pem`: (Optional) Location of PEM file. Either pem or password has to be specified.
 * `pemPassphrase`: (Optional) Passphrase for PEM file.
 * `host`: SFTP Host.
 * `port`: (Optional) Port in which SFTP server is running. Default value 22.
-* `fileType`: Type of the file. Supported types are csv, txt, json, avro and parquet
-* `inferSchema`: (Optional) InferSchema from the file content. Currently applicable only for csv fileType
-* `header`: (Optional) Applicable only for csv fileType. Is the first row in CSV file is header. 
-* `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
-* `quote`: (Optional) Set the quote character. Applicable only for csv fileType. Default is ".
-* `escape`: (Optional) Set the escape character. Applicable only for csv fileType. Default is \.
-* `multiLine`: (Optional) Set the multiline. Applicable only for csv fileType. Default is false.
-* `codec`: (Optional) Applicable only for csv fileType. Compression codec to use when saving to file. Should be the fully qualified name of a class implementing org.apache.hadoop.io.compress.CompressionCodec or one of case-insensitive shorten names (bzip2, gzip, lz4, and snappy). Defaults to no compression when a codec is not specified.
+* `fileType`: Type of the file. Supported types are `csv`, `txt`, `json`, `avro` and `parquet`.
+* `inferSchema`: (Optional) Infer the schema from the file content. Currently applicable only for `csv` fileType.
+* `header`: (Optional) Applicable only for `csv` fileType. The first row in CSV file is the header.
+* `delimiter`: (Optional) Set the field delimiter. Applicable only for `csv` `fileType`. Default is `,`.
+* `quote`: (Optional) Set the quote character. Applicable only for `csv` `fileType`. Default is `"`.
+* `escape`: (Optional) Set the escape character. Applicable only for csv `fileType`. Default is `\`.
+* `multiLine`: (Optional) Set the multiline. Applicable only to the `csv` `fileType`. Default is `false`.
+* `codec`: (Optional) Applicable only to the `csv` `fileType`. Compression codec to use when saving to file. Should be the fully qualified name of a class implementing `org.apache.hadoop.io.compress.CompressionCodec` or one of the case-insensitive shorter names (`bzip2`, `gzip`, `lz4`, and `snappy`). Defaults to no compression when no codec is specified.
 
 ### Scala API
 ```scala
 
-// Construct Spark dataframe using file in FTP server
+// Construct Spark dataframe using a file on the FTP server
 val df = spark.read.
             format("com.springml.spark.sftp").
             option("host", "SFTP_HOST").
@@ -73,7 +73,7 @@ val df = spark.read.
             option("inferSchema", "true").
             load("/ftp/files/sample.csv")
 
-// Write dataframe as CSV file to FTP server
+// Write dataframe as a CSV file to the FTP server
 df.write.
       format("com.springml.spark.sftp").
       option("host", "SFTP_HOST").
@@ -85,7 +85,7 @@ df.write.
       save("/ftp/files/sample.csv")
 
 
-// Construct spark dataframe using text file in FTP server
+// Construct Spark dataframe using a text file from the FTP server
  val df = spark.read.
             format("com.springml.spark.sftp").
             option("host", "SFTP_HOST").
@@ -94,7 +94,7 @@ df.write.
             option("fileType", "txt").
             load("config")
             
- // Construct spark dataframe using xml file in FTP server           
+ // Construct spark dataframe using an xml file from the FTP server           
             val df = spark.read.
                  format("com.springml.spark.sftp").
                  option("host", "SFTP_HOST").
@@ -103,7 +103,7 @@ df.write.
                  option("fileType", "xml").
                  option("rowTag", "YEAR").load("myxml.xml")
                  
- // Write dataframe as XML file to FTP server           
+ // Write dataframe as an XML file to the FTP server           
            
                  df.write.format("com.springml.spark.sftp").
                  option("host", "SFTP_HOST").
@@ -118,7 +118,7 @@ df.write.
 
 ### Java API
 ```java
-// Construct Spark dataframe using file in FTP server
+// Construct Spark dataframe using a json file on the FTP server
 DataFrame df = spark.read().
 					format("com.springml.spark.sftp").
 				    option("host", "SFTP_HOST").
@@ -127,7 +127,7 @@ DataFrame df = spark.read().
 				    option("fileType", "json").
 				    load("/ftp/files/sample.json")
 
-// Write dataframe as CSV file to FTP server
+// Write dataframe as a CSV file to the FTP server
 df.write().
       format("com.springml.spark.sftp").
       option("host", "SFTP_HOST").
@@ -147,7 +147,7 @@ if (nchar(Sys.getenv("SPARK_HOME")) < 1) {
 library(SparkR, lib.loc = c(file.path(Sys.getenv("SPARK_HOME"), "R", "lib")))
 sparkR.session(master = "local[*]", sparkConfig = list(spark.driver.memory = "2g"))
 
-# Construct Spark dataframe using avro file in FTP server
+# Construct Spark dataframe using an avro file on the FTP server
 df <- read.df(path="/ftp/files/sample.avro",
             source="com.springml.spark.sftp",
             host="SFTP_HOST",
@@ -155,7 +155,7 @@ df <- read.df(path="/ftp/files/sample.avro",
             pem="/home/user/mypem.pem",
             fileType="avro")
 
-# Write dataframe as avro file to FTP server
+# Write dataframe as avro file to the FTP server
 write.df(df,
         path="/ftp/files/sample.avro",
         source="com.springml.spark.sftp",
@@ -167,7 +167,7 @@ write.df(df,
 
 ### Note
 1. SFTP files are fetched and written using [jsch](http://www.jcraft.com/jsch/). It will be executed as a single process
-2. Files from SFTP server will be downloaded to temp location and it will be deleted only during spark shutdown
+2. Files from the SFTP server will be downloaded to temp location which will be deleted only during spark shutdown
 
 
 ## Building From Source
