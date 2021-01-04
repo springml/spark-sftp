@@ -2,32 +2,31 @@ name := "spark-sftp"
 
 organization := "com.springml"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.10"
 
-sparkVersion := "2.3.0"
+crossScalaVersions := Seq("2.11.12", "2.12.10")
+
+sparkVersion := "2.4.3"
 
 spName := "springml/spark-sftp"
 
-version := "1.1.4"
+version := "1.2.0"
 
 // Dependent libraries
 libraryDependencies ++= Seq(
   "com.springml" % "sftp.client" % "1.0.3",
   "org.mockito" % "mockito-core" % "2.0.31-beta",
-  "com.databricks" % "spark-xml_2.11" % "0.4.1"
+  "com.databricks" %% "spark-xml" % "0.5.0"
 )
 
 // used spark components
-sparkComponents += "sql"
+sparkComponents ++= Seq("sql", "avro")
 
 // Repositories
 resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
 
-// Spark packages
-spDependencies += "com.databricks/spark-avro_2.11:3.2.0"
-
 // Test dependencies
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.3" % "test"
 libraryDependencies += "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api")
 libraryDependencies +=  "org.apache.spark" %% "spark-hive" % sparkVersion.value % "test"
 

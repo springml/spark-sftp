@@ -16,14 +16,14 @@ You can link against this library in your program at the following ways:
 <dependency>
 	<groupId>com.springml</groupId>
 	<artifactId>spark-sftp_2.11</artifactId>
-	<version>1.1.3</version>
+	<version>1.2.0</version>
 </dependency>
 
 ```
 
 ### SBT Dependency
 ```
-libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.3"
+libraryDependencies += "com.springml" %% "spark-sftp" % "1.2.0"
 ```
 
 
@@ -31,7 +31,7 @@ libraryDependencies += "com.springml" % "spark-sftp_2.11" % "1.1.3"
 This package can be added to Spark using the `--packages` command line option.  For example, to include it when starting the spark shell:
 
 ```
-$ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.1.3
+$ bin/spark-shell --packages com.springml:spark-sftp_2.11:1.2.0
 ```
 
 ## Features
@@ -171,4 +171,4 @@ write.df(df,
 
 
 ## Building From Source
-This library is built with [SBT](http://www.scala-sbt.org/0.13/docs/Command-Line-Reference.html), which is automatically downloaded by the included shell script. To build a JAR file simply run `build/sbt package` from the project root.
+This library is built with [SBT](http://www.scala-sbt.org/0.13/docs/Command-Line-Reference.html), which is automatically downloaded by the included shell script. To build a JAR file simply run `build/sbt +package` from the project root.
