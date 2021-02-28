@@ -53,6 +53,7 @@ This library requires following options:
 * `delimiter`: (Optional) Set the field delimiter. Applicable only for csv fileType. Default is comma.
 * `quote`: (Optional) Set the quote character. Applicable only for csv fileType. Default is ".
 * `escape`: (Optional) Set the escape character. Applicable only for csv fileType. Default is \.
+* `encoding`: (Optional) Set the file encoding. Applicable only for the csv fileType. Default is UTF-8.
 * `multiLine`: (Optional) Set the multiline. Applicable only for csv fileType. Default is false.
 * `codec`: (Optional) Applicable only for csv fileType. Compression codec to use when saving to file. Should be the fully qualified name of a class implementing org.apache.hadoop.io.compress.CompressionCodec or one of case-insensitive shorten names (bzip2, gzip, lz4, and snappy). Defaults to no compression when a codec is not specified.
 
