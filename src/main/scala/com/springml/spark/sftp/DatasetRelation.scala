@@ -18,6 +18,7 @@ case class DatasetRelation(
     delimiter: String,
     quote: String,
     escape: String,
+    encoding: String,
     multiLine: String,
     rowTag: String,
     customSchema: StructType,
@@ -46,6 +47,7 @@ case class DatasetRelation(
           option("delimiter", delimiter).
           option("quote", quote).
           option("escape", escape).
+          option("encoding", encoding).
           option("multiLine", multiLine).
           option("inferSchema", inferSchema).
           csv(fileLocation)
