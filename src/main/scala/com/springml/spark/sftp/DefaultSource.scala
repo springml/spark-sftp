@@ -152,7 +152,9 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
     val hadoopConf = sqlContext.sparkContext.hadoopConfiguration
     val hdfsPath = new Path(hdfsTemp)
     val fs = hdfsPath.getFileSystem(hadoopConf)
-    if ("hdfs".equalsIgnoreCase(fs.getScheme)) {
+    logger.debug("#### copyFromHdfs-->fs.getScheme: "+fs.getScheme)
+    if ("dbfs".equalsIgnoreCase(fs.getScheme) || "hdfs".equalsIgnoreCase(fs.getScheme)) {
+      logger.debug(s"#### Copying from ${fs.getScheme}:$hdfsTemp -->$fileLocation: ")
       fs.copyToLocalFile(new Path(hdfsTemp), new Path(fileLocation))
       fs.deleteOnExit(new Path(hdfsTemp))
       return fileLocation
@@ -272,6 +274,7 @@ class DefaultSource extends RelationProvider with SchemaRelationProvider with Cr
 
   private def copiedFile(tempFileLocation: String) : String = {
     val baseTemp = new File(tempFileLocation)
+    print("#### copiedFile-->baseTemp.listFiles(): "+baseTemp.listFiles().mkString("Array(",",",")"))
     val files = baseTemp.listFiles().filter { x =>
       (!x.isDirectory()
         && !x.getName.contains("SUCCESS")
