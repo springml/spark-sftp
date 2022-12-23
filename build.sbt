@@ -1,47 +1,68 @@
-name := "spark-sftp"
+lazy val scala211Version = "2.11.12"
+lazy val scala212Version = "2.12.10"
+lazy val sparkVersion = "3.2.1"
 
-organization := "com.springml"
-
-scalaVersion := "2.11.8"
-
-sparkVersion := "2.3.0"
-
-spName := "springml/spark-sftp"
-
-version := "1.1.4"
-
-// Dependent libraries
-libraryDependencies ++= Seq(
-  "com.springml" % "sftp.client" % "1.0.3",
-  "org.mockito" % "mockito-core" % "2.0.31-beta",
-  "com.databricks" % "spark-xml_2.11" % "0.4.1"
+lazy val commonSettings = Seq(
+  name := "spark-sftp",
+  organization := "com.springml",
+  version := "1.3.3",
+  scalaVersion := scala212Version,
+  crossScalaVersions := Seq(scala212Version)
 )
 
-// used spark components
-sparkComponents += "sql"
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+
+initialize := {
+  val _ = initialize.value
+  val javaVersion = sys.props("java.specification.version")
+  if (javaVersion != "1.8")
+    sys.error("Java 1.8 is required for this project. Found " + javaVersion + " instead")
+}
+
+
+lazy val shaded = (project in file("."))
+  .settings(commonSettings)
+
+// Test dependencies
+lazy val commonTestDependencies = Seq(
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api"),
+  "org.apache.spark" %% "spark-hive" % sparkVersion % "test"
+)
+
+// Dependent libraries
+libraryDependencies ++= (commonTestDependencies ++ Seq(
+  //spark libs
+  "org.apache.spark" %% "spark-core" % sparkVersion,
+  "org.apache.spark" %% "spark-sql" % sparkVersion,
+  //spark -dependents
+  "org.apache.spark" %% "spark-avro" % sparkVersion,
+  "com.springml" % "sftp.client" % "1.0.3",
+  "org.mockito" % "mockito-core" % "2.0.31-beta",
+  "com.databricks" %% "spark-xml" % "0.5.0"
+))
+
 
 // Repositories
 resolvers += "Spark Package Main Repo" at "https://dl.bintray.com/spark-packages/maven"
 
-// Spark packages
-spDependencies += "com.databricks/spark-avro_2.11:3.2.0"
 
-// Test dependencies
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
-libraryDependencies += "org.apache.avro" % "avro-mapred" % "1.7.7" % "test" exclude("org.mortbay.jetty", "servlet-api")
-libraryDependencies +=  "org.apache.spark" %% "spark-hive" % sparkVersion.value % "test"
 
-spIgnoreProvided := true
+
+
+
 // licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+//credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+
+credentials += Credentials("Sonatype Nexus Repository Manager", "example.com", "deployment", "deployment_pwd")
 
 publishTo := {
-  val nexus = "https://oss.sonatype.org/"
+  val nexus = "http://example.com:8081/nexus/repository"
   if (version.value.endsWith("SNAPSHOT"))
-    Some("snapshots" at nexus + "content/repositories/snapshots")
+    Some("snapshots" at nexus + "/snapshots")
   else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    Some("releases" at nexus + "/releases")
 }
 
 pomExtra := (
