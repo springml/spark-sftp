@@ -1,0 +1,77 @@
+plugins {
+  id 'scala'
+  id 'eclipse'
+  id 'java-library'
+  id 'maven-publish'
+  id("com.github.maiflai.scalatest") version "0.25"
+}
+
+group = "com.springml"
+version = "1.1.5-SNAPSHOT"
+
+/**  
+    see https://github.com/eclipse/eclipse.jdt.ls/pull/1108
+ */
+eclipse {
+  classpath {
+    defaultOutputDir = file('build/eclipse')
+    file.whenMerged {
+      entries.each { entry ->
+        if (entry.kind == 'src' && entry.hasProperty('output')) {
+          entry.output = entry.output.replace('bin/', "build/eclipse/")
+        }
+      }
+    }
+  }
+}
+
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compileOnly 'org.scala-lang:scala-library:2.12.17'
+  implementation group: 'org.apache.spark', name: 'spark-sql_2.12', version: '3.2.3'
+  implementation group: 'com.springml', name: 'sftp.client', version: '1.0.3'
+  
+  testImplementation group: 'org.apache.spark', name: 'spark-avro_2.12', version: '3.2.3'
+  testImplementation group: 'org.scalatest', name: 'scalatest_2.12', version: '3.2.15'
+  testImplementation 'com.vladsch.flexmark:flexmark-all:0.62.2'
+  testImplementation group: 'org.apache.spark', name: 'spark-hive_2.12', version: '3.2.3'
+  testImplementation group: 'com.databricks', name: 'spark-xml_2.12', version: '0.16.0'
+
+}
+
+task spec(dependsOn: ['testClasses'], type: JavaExec) {
+  main = 'org.scalatest.tools.Runner'
+  args = ['-R', 'build/classes/scala/test', '-o']
+  classpath = sourceSets.test.runtimeClasspath
+}
+
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allScala
+}
+
+task javadocJar(type: Jar, dependsOn: scaladoc) {
+    archiveClassifier = 'scaladoc'
+    from scaladoc.destinationDir
+}
+
+publishing {
+    publications {
+        myLibrary(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'myRepo'
+            url = "file://${buildDir}/repo"
+        }
+    }
+}
